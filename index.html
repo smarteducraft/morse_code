@@ -1,0 +1,310 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { Lightbulb, RotateCcw, Play, CheckCircle2, AlertCircle, HelpCircle, Trophy, Sparkles } from 'lucide-react';
+
+const MORSE_NUMS = {
+  '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+  '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----'
+};
+
+const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_NUMS).map(([k, v]) => [v, k]));
+
+const App = () => {
+  const [step, setStep] = useState(1); // 1: 연습, 2: 시스템 문제 풀기, 3: 시스템이 맞히기
+  const [isLightOn, setIsLightOn] = useState(false);
+  const [currentInput, setCurrentInput] = useState("");
+  const [targetNum, setTargetNum] = useState('1');
+  const [feedback, setFeedback] = useState({ message: "안녕! 빛 신호를 배워볼까? 🌟", type: "neutral" });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [score, setScore] = useState(0);
+
+  // 전구 깜빡이기 로직 (시각적 피드백)
+  const flashLight = (duration) => {
+    setIsLightOn(true);
+    setTimeout(() => setIsLightOn(false), duration);
+  };
+
+  // 버튼 입력 처리 (점, 선)
+  const handleInput = (type) => {
+    if (isPlaying) return;
+    
+    const symbol = type === 'dot' ? '.' : '-';
+    flashLight(type === 'dot' ? 200 : 600);
+    
+    const nextInput = currentInput + symbol;
+    
+    // 최대 5자리까지만 입력 가능하도록 제한
+    if (nextInput.length <= 5) {
+      setCurrentInput(nextInput);
+    }
+  };
+
+  // 새로운 문제 생성 및 상태 초기화
+  const generateNewProblem = useCallback(() => {
+    const nums = Object.keys(MORSE_NUMS);
+    const randomNum = nums[Math.floor(Math.random() * nums.length)];
+    setTargetNum(randomNum);
+    setCurrentInput("");
+    
+    if (step === 1) {
+      setFeedback({ message: `숫자 '${randomNum}'을(를) 만들어보자! 🎈`, type: "neutral" });
+    } else if (step === 2) {
+      setFeedback({ message: "준비됐니? '문제 보기'를 눌러봐! 👇", type: "neutral" });
+    } else {
+      setFeedback({ message: "보내고 싶은 숫자의 신호를 입력해줘! 🤖", type: "neutral" });
+    }
+  }, [step]);
+
+  useEffect(() => {
+    generateNewProblem();
+  }, [step, generateNewProblem]);
+
+  // 1단계: 입력 실시간 확인
+  useEffect(() => {
+    if (step === 1 && currentInput.length === 5) {
+      if (currentInput === MORSE_NUMS[targetNum]) {
+        setFeedback({ message: "우와! 정확하게 입력했어! 🎉", type: "success" });
+        setScore(s => s + 1);
+        setTimeout(generateNewProblem, 1500);
+      } else {
+        setFeedback({ message: "패턴이 조금 달라. 다시 해볼까? 💡", type: "error" });
+        setTimeout(() => setCurrentInput(""), 1200);
+      }
+    }
+  }, [currentInput, targetNum, step, generateNewProblem]);
+
+  // 2단계: 시스템이 빛 신호 출력
+  const playSystemSignal = async () => {
+    if (isPlaying) return;
+    setIsPlaying(true);
+    setCurrentInput("");
+    setFeedback({ message: "전구의 빛을 잘 관찰해봐! 집중! 👀", type: "neutral" });
+
+    const code = MORSE_NUMS[targetNum];
+    for (let char of code) {
+      setIsLightOn(true);
+      await new Promise(r => setTimeout(r, char === '.' ? 300 : 800));
+      setIsLightOn(false);
+      await new Promise(r => setTimeout(r, 400)); // 신호 사이 간격
+    }
+    setIsPlaying(false);
+    setFeedback({ message: "방금 본 신호는 어떤 숫자였을까?", type: "neutral" });
+  };
+
+  // 3단계: 시스템이 사용자 신호 해독
+  const checkMySignal = () => {
+    const decoded = REVERSE_MORSE[currentInput];
+    if (decoded) {
+      setFeedback({ message: `알겠다! 네가 보낸 신호는 숫자 '${decoded}'이지? 😎`, type: "success" });
+      setScore(s => s + 1);
+      setTimeout(generateNewProblem, 2000);
+    } else {
+      setFeedback({ message: "음... 그런 신호는 없어. 다시 천천히 보내줘! 🤖", type: "error" });
+      setCurrentInput("");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FFFBEB] font-sans p-4 md:p-8 flex flex-col items-center">
+      {/* Title Section */}
+      <div className="max-w-xl w-full text-center mb-8">
+        <h1 className="text-4xl font-extrabold text-[#92400E] mb-4 flex items-center justify-center gap-3">
+          <Sparkles className="text-yellow-500" />
+          빛으로 보내는 숫자 신호
+          <Sparkles className="text-yellow-500" />
+        </h1>
+        
+        {/* Step Tabs */}
+        <div className="bg-white rounded-3xl p-3 shadow-md flex gap-2 border-2 border-yellow-200">
+          {[1, 2, 3].map((s) => (
+            <button 
+              key={s}
+              onClick={() => {setStep(s); setScore(0);}}
+              className={`flex-1 py-3 rounded-2xl transition-all font-black text-xl ${
+                step === s 
+                  ? 'bg-yellow-400 text-white shadow-inner transform scale-105' 
+                  : 'text-gray-400 hover:bg-yellow-50'
+              }`}
+            >
+              {s}단계
+            </button>
+          ))}
+        </div>
+        <p className="mt-4 text-lg font-bold text-yellow-700">
+            {step === 1 && "✨ 모스 부호로 숫자 표현 연습을 해보자!"}
+            {step === 2 && "🔍 컴퓨터가 보내는 빛 신호를 맞혀보자!"}
+            {step === 3 && "🤖 컴퓨터에게 빛 신호를 보내보자!"}
+        </p>
+      </div>
+
+      {/* Main Experience Area */}
+      <div className="max-w-xl w-full bg-white rounded-[40px] shadow-2xl overflow-hidden border-[6px] border-yellow-300">
+        
+        {/* Light Display Screen */}
+        <div className="bg-slate-900 p-10 flex flex-col items-center justify-center relative min-h-[320px]">
+            <div className={`absolute top-6 right-6 bg-yellow-400 px-4 py-2 rounded-full font-bold text-xl flex items-center gap-2`}>
+                <Trophy size={24} className="text-yellow-800" />
+                <span>{score}점</span>
+            </div>
+
+            {/* Light Bulb Graphic */}
+            <div className={`transition-all duration-300 transform ${isLightOn ? 'scale-125' : 'scale-100'}`}>
+                <Lightbulb 
+                    size={140} 
+                    className={`transition-all duration-200 ${isLightOn ? 'text-yellow-400 filter drop-shadow-[0_0_50px_rgba(250,204,21,1)]' : 'text-slate-700'}`}
+                    fill={isLightOn ? "currentColor" : "none"}
+                />
+            </div>
+
+            {/* Visual Signal Dots */}
+            <div className="mt-10 flex gap-3 min-h-[48px] items-center">
+                {currentInput.split('').map((char, i) => (
+                    <div key={i} className={`w-6 h-6 rounded-full ${char === '.' ? 'bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.8)]' : 'bg-orange-400 w-12 h-6 rounded-lg'}`} />
+                ))}
+                {[...Array(5 - currentInput.length)].map((_, i) => (
+                    <div key={i} className="w-6 h-6 rounded-full bg-slate-800" />
+                ))}
+            </div>
+            
+            <div className="mt-6 text-white font-mono tracking-[0.5em] text-3xl font-bold">
+                {currentInput || "..."}
+            </div>
+        </div>
+
+        {/* User Interaction Area */}
+        <div className="p-8">
+            {/* Feedback Speech Bubble */}
+            <div className={`mb-8 p-5 rounded-[2rem] flex items-center gap-4 border-4 transition-all ${
+                feedback.type === 'success' ? 'bg-green-50 border-green-300 text-green-800' :
+                feedback.type === 'error' ? 'bg-red-50 border-red-300 text-red-800' :
+                'bg-blue-50 border-blue-300 text-blue-800'
+            }`}>
+                <div className="bg-white p-2 rounded-full shadow-sm">
+                    {feedback.type === 'success' ? <CheckCircle2 size={32} /> : feedback.type === 'error' ? <AlertCircle size={32} /> : <HelpCircle size={32} />}
+                </div>
+                <p className="text-2xl font-black leading-tight">{feedback.message}</p>
+            </div>
+
+            {/* Mode-specific UI */}
+            <div className="mb-8">
+                {step === 1 && (
+                    <div className="text-center p-6 bg-yellow-50 rounded-3xl border-2 border-dashed border-yellow-300">
+                        <span className="text-gray-500 text-lg font-bold block mb-2">이번에 만들 숫자는?</span>
+                        <div className="text-7xl font-black text-yellow-600 mb-2">{targetNum}</div>
+                        <div className="text-3xl font-mono tracking-widest text-gray-400 bg-white inline-block px-6 py-2 rounded-2xl shadow-sm border border-yellow-100">
+                            {MORSE_NUMS[targetNum]}
+                        </div>
+                    </div>
+                )}
+
+                {step === 2 && (
+                    <div className="grid grid-cols-5 gap-3">
+                        {[1,2,3,4,5,6,7,8,9,0].map(n => (
+                            <button
+                                key={n}
+                                disabled={isPlaying}
+                                onClick={() => {
+                                    if (n.toString() === targetNum) {
+                                        setFeedback({ message: "딩동댕! 정답이야! 대단한걸? 🌈", type: "success" });
+                                        setScore(s => s + 1);
+                                        setTimeout(generateNewProblem, 1500);
+                                    } else {
+                                        setFeedback({ message: "아니에요. 다시 한 번 잘 볼래?", type: "error" });
+                                    }
+                                }}
+                                className="aspect-square bg-yellow-100 hover:bg-yellow-400 hover:text-white text-yellow-900 font-black rounded-[1.5rem] text-3xl flex items-center justify-center transition-all shadow-md active:translate-y-1"
+                            >
+                                {n}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {step === 3 && (
+                    <div className="text-center py-4">
+                        <p className="text-xl font-bold text-gray-600 bg-gray-100 py-4 rounded-2xl px-4 italic">
+                            "원하는 숫자의 신호를 전구 버튼으로 <br/>입력한 뒤 '해독하기'를 눌러봐!"
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            {/* Morse Control Buttons (Circles) */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-center gap-10">
+                    <div className="text-center">
+                        <button 
+                            onMouseDown={() => handleInput('dot')}
+                            className="w-28 h-28 rounded-full bg-yellow-400 hover:bg-yellow-500 shadow-[0_8px_0_#ca8a04] active:shadow-none active:translate-y-[8px] transition-all flex items-center justify-center border-[6px] border-yellow-600"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-yellow-900" />
+                        </button>
+                        <span className="text-xl mt-4 block font-black text-yellow-800">점 (짧게)</span>
+                    </div>
+                    <div className="text-center">
+                        <button 
+                            onMouseDown={() => handleInput('dash')}
+                            className="w-28 h-28 rounded-full bg-orange-400 hover:bg-orange-500 shadow-[0_8px_0_#c2410c] active:shadow-none active:translate-y-[8px] transition-all flex items-center justify-center border-[6px] border-orange-600"
+                        >
+                            <div className="w-16 h-6 rounded-full bg-orange-950" />
+                        </button>
+                        <span className="text-xl mt-4 block font-black text-orange-800">선 (길게)</span>
+                    </div>
+                </div>
+
+                {/* Function Buttons */}
+                <div className="flex gap-4 mt-8">
+                    <button 
+                        onClick={() => setCurrentInput("")}
+                        className="flex-1 py-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-3xl text-xl font-black flex items-center justify-center gap-2 transition-all shadow-md"
+                    >
+                        <RotateCcw size={24} /> 지우기
+                    </button>
+                    
+                    {step === 2 && (
+                        <button 
+                            onClick={playSystemSignal}
+                            disabled={isPlaying}
+                            className="flex-[2] py-5 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white rounded-3xl text-2xl font-black flex items-center justify-center gap-3 shadow-xl transition-all"
+                        >
+                            <Play size={28} fill="white" /> 문제 보기
+                        </button>
+                    )}
+
+                    {step === 3 && (
+                        <button 
+                            onClick={checkMySignal}
+                            className="flex-[2] py-5 bg-green-500 hover:bg-green-600 text-white rounded-3xl text-2xl font-black flex items-center justify-center gap-3 shadow-xl transition-all"
+                        >
+                            해독하기 🤖
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+      </div>
+
+      {/* Reference Table */}
+      <div className="mt-10 max-w-xl w-full bg-white p-6 rounded-[2rem] shadow-lg border-2 border-yellow-100">
+        <h3 className="text-2xl font-black text-yellow-800 flex items-center gap-2 mb-4">
+            📜 숫자 모스 부호표
+        </h3>
+        <div className="grid grid-cols-2 gap-x-8 gap-y-2 font-mono">
+            {Object.entries(MORSE_NUMS).map(([num, code]) => (
+                <div key={num} className="flex justify-between items-center border-b border-yellow-50 py-2">
+                    <span className="text-2xl font-black text-yellow-600">{num}</span>
+                    <span className="text-2xl tracking-[0.2em] font-bold text-gray-400">{code}</span>
+                </div>
+            ))}
+        </div>
+      </div>
+      
+      {/* Decorative Character Footer */}
+      <div className="mt-10 text-center text-gray-400">
+          <p className="text-lg font-bold">💡 빛 신호의 길이를 잘 조절하는 것이 중요해!</p>
+          <div className="text-5xl mt-2 animate-bounce">🐹 🎒 🔭</div>
+      </div>
+    </div>
+  );
+};
+
+export default App;
