@@ -1,425 +1,927 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>빛으로 보내는 숫자 신호</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>빛으로 숫자 신호 보내기 (V1.09)</title>
+    <!--
+        빛으로 숫자 신호 보내기
+
+        버전 히스토리
+        V1.07
+        - 버전 표기를 V1.07로 업데이트
+        - 기존 기능 및 UI 구성은 그대로 유지
+
+        V1.08
+        - 기능/설정/JS 로직은 그대로 유지한 채 전체 UI 디자인 리뉴얼
+        - 알파세대 취향의 세련된 키즈 에듀테크 스타일 반영
+        - 둥근 카드형 레이아웃, 부드러운 그림자, 은은한 그라디언트 적용
+        - 큰 버튼, 높은 가독성, 직관적인 정보 위계로 시각 구조 개선
+        - 모바일/태블릿/PC 반응형 디자인 완성도 향상
+
+        V1.09
+        - 상단 버전 칩 문구가 화면에 출력되지 않도록 변경
+        - 숫자 저장 / 숫자 확인 / 지우기 버튼 크기를 더 적절한 크기로 조정
+        - 기능/설정/JS 로직은 그대로 유지
+    -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
-        
+        :root {
+            --bg-1: #f7f9ff;
+            --bg-2: #eef8ff;
+            --bg-3: #fff7ef;
+            --bg-4: #f5efff;
+
+            --card-bg: rgba(255, 255, 255, 0.82);
+            --card-border: rgba(255, 255, 255, 0.92);
+            --card-solid: #ffffff;
+
+            --primary: #6d5efc;
+            --primary-2: #8b7bff;
+            --blue: #42a5ff;
+            --mint: #35d6b5;
+            --yellow: #ffd84d;
+            --pink: #ff77b7;
+            --orange: #ffab5b;
+
+            --text-primary: #1f2a44;
+            --text-secondary: #5f6b85;
+            --text-muted: #8d96ab;
+            --text-soft: #6f7b91;
+
+            --shadow-xs: 0 6px 18px rgba(79, 104, 155, 0.08);
+            --shadow-sm: 0 12px 28px rgba(84, 104, 145, 0.12);
+            --shadow-md: 0 18px 42px rgba(79, 96, 136, 0.16);
+            --shadow-lg: 0 28px 60px rgba(73, 86, 118, 0.18);
+
+            --radius-sm: 16px;
+            --radius-md: 22px;
+            --radius-lg: 28px;
+            --radius-xl: 34px;
+            --radius-pill: 999px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
         body {
-            font-family: 'Nanum+Gothic', sans-serif;
-            background-color: #FFFBEB;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 10% 12%, rgba(66, 165, 255, 0.18) 0%, rgba(66, 165, 255, 0) 22%),
+                radial-gradient(circle at 88% 14%, rgba(255, 119, 183, 0.16) 0%, rgba(255, 119, 183, 0) 24%),
+                radial-gradient(circle at 84% 84%, rgba(53, 214, 181, 0.15) 0%, rgba(53, 214, 181, 0) 22%),
+                radial-gradient(circle at 16% 86%, rgba(255, 216, 77, 0.18) 0%, rgba(255, 216, 77, 0) 22%),
+                linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 35%, var(--bg-3) 68%, var(--bg-4) 100%);
         }
 
-        .bulb-glow {
-            filter: drop-shadow(0 0 30px rgba(250, 204, 21, 0.8));
-            color: #FACC15 !important;
-        }
-
-        .btn-push {
-            transition: all 0.1s;
-            box-shadow: 0 8px 0 rgba(0,0,0,0.2);
-        }
-
-        .btn-push:active {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
-        }
-
-        .signal-dot {
-            width: 24px;
-            height: 24px;
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
             border-radius: 50%;
-            background-color: #FACC15;
-            box-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+            filter: blur(28px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.55;
         }
 
-        .signal-dash {
-            width: 48px;
-            height: 24px;
-            border-radius: 12px;
-            background-color: #FB923C;
+        body::before {
+            width: 220px;
+            height: 220px;
+            left: -50px;
+            top: 54px;
+            background: rgba(109, 94, 252, 0.13);
         }
 
-        .signal-empty {
-            width: 24px;
-            height: 24px;
+        body::after {
+            width: 240px;
+            height: 240px;
+            right: -56px;
+            bottom: 38px;
+            background: rgba(66, 165, 255, 0.14);
+        }
+
+        .app-shell {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1140px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            animation: appFade 0.7s ease;
+        }
+
+        @keyframes appFade {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header {
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 900;
+            line-height: 1.08;
+            letter-spacing: -0.05em;
+            background: linear-gradient(135deg, #6554ff 0%, #7b6eff 34%, #2f8fff 68%, #21c7d9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-wrap: balance;
+        }
+
+        .sub-description {
+            display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.76);
+            border: 1px solid rgba(255, 255, 255, 0.92);
+            border-radius: var(--radius-pill);
+            box-shadow: var(--shadow-xs);
+            color: var(--text-secondary);
+            font-size: 0.96rem;
+            font-weight: 800;
+        }
+
+        .sub-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: minmax(320px, 0.85fr) minmax(340px, 1.15fr);
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            border-radius: var(--radius-xl);
+            background: var(--card-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0) 28%),
+                radial-gradient(circle at top right, rgba(109,94,252,0.09) 0%, rgba(109,94,252,0) 30%);
+            pointer-events: none;
+        }
+
+        .card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .interaction-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            min-height: 100%;
+        }
+
+        .label-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.92rem;
+            font-weight: 900;
+            color: #0f766e;
+            background: linear-gradient(135deg, #ecfeff 0%, #dcfce7 100%);
+            padding: 10px 18px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(255,255,255,0.92);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .control-hint {
+            font-size: 0.84rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: -2px;
+        }
+
+        .bulb-container {
+            width: clamp(214px, 29vw, 272px);
+            height: clamp(214px, 29vw, 272px);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0 4px;
             border-radius: 50%;
-            background-color: #1E293B;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.92) 28%, rgba(239,245,255,0.98) 100%);
+            border: 10px solid rgba(255, 255, 255, 0.9);
+            box-shadow:
+                inset 0 3px 10px rgba(255,255,255,0.9),
+                inset 0 -12px 22px rgba(173, 214, 255, 0.26),
+                0 20px 42px rgba(94, 121, 180, 0.16),
+                0 8px 18px rgba(109, 94, 252, 0.08);
+            transition: transform 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
         }
 
-        .step-active {
-            background-color: #FACC15;
-            color: white;
-            transform: scale(1.05);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        .bulb-container::before {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0) 70%);
+            pointer-events: none;
         }
 
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        .bulb-container:hover {
+            transform: translateY(-3px) scale(1.015);
+            box-shadow:
+                inset 0 3px 10px rgba(255,255,255,0.95),
+                inset 0 -12px 22px rgba(173, 214, 255, 0.28),
+                0 26px 52px rgba(94, 121, 180, 0.18),
+                0 12px 22px rgba(109, 94, 252, 0.10);
         }
-        .animate-bounce-slow {
-            animation: bounce-slow 2s infinite;
+
+        .bulb-container.active {
+            transform: scale(0.96);
+            background:
+                radial-gradient(circle at 50% 45%, #fffef4 0%, #fff6bc 42%, #ffe27b 100%);
+            box-shadow:
+                inset 0 4px 16px rgba(255,255,255,0.96),
+                inset 0 -10px 18px rgba(255, 204, 64, 0.24),
+                0 0 0 10px rgba(255, 226, 123, 0.32),
+                0 24px 54px rgba(255, 199, 65, 0.28);
+        }
+
+        .bulb-svg {
+            width: clamp(88px, 10vw, 112px);
+            height: clamp(88px, 10vw, 112px);
+            fill: #cfdae8;
+            position: relative;
+            z-index: 2;
+            transition: all 0.2s ease;
+        }
+
+        .bulb-container.active .bulb-svg {
+            fill: var(--yellow);
+            filter: drop-shadow(0 0 18px rgba(255, 216, 77, 0.58));
+        }
+
+        .glow-ring {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 216, 77, 0.28) 0%, rgba(255, 216, 77, 0.10) 40%, rgba(255, 216, 77, 0) 72%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 1;
+        }
+
+        .bulb-container.active .glow-ring {
+            opacity: 1;
+            animation: pulse 1.45s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.44;
+            }
+            55% {
+                transform: scale(1.18);
+                opacity: 0.18;
+            }
+            100% {
+                transform: scale(1.36);
+                opacity: 0;
+            }
+        }
+
+        .status-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .signal-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.93rem;
+            font-weight: 800;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255,255,255,0.92);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .signal-toggle-label input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--blue);
+            flex-shrink: 0;
+        }
+
+        .signal-pills {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 68px;
+            padding: 16px 20px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(244,248,255,0.96) 100%);
+            border: 1px solid rgba(255,255,255,0.95);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.92), var(--shadow-sm);
+        }
+
+        .signal-pills.hidden {
+            display: none;
+        }
+
+        .sig-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dbe4f1 0%, #cbd5e1 100%);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.8);
+            transition: all 0.26s ease;
+        }
+
+        .sig-dot.on-dot {
+            background: linear-gradient(135deg, #ff96c8 0%, #ff5fa7 100%);
+            box-shadow:
+                0 0 0 4px rgba(255, 119, 183, 0.12),
+                0 0 16px rgba(255, 119, 183, 0.28);
+            transform: scale(1.08);
+        }
+
+        .sig-dot.on-dash {
+            width: 30px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7bc8ff 0%, #42a5ff 100%);
+            box-shadow:
+                0 0 0 4px rgba(66, 165, 255, 0.10),
+                0 0 16px rgba(66, 165, 255, 0.24);
+        }
+
+        #statusHint {
+            min-width: 220px;
+            padding: 12px 18px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: var(--text-secondary);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.92);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .guide-panel {
+            justify-content: center;
+        }
+
+        .guide-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            font-size: 1.16rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+        }
+
+        .guide-header-icon {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.08rem;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ede9ff 0%, #dff2ff 100%);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .guide-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.97) 0%, rgba(247,250,255,0.97) 100%);
+            border: 1px solid rgba(255,255,255,0.95);
+            box-shadow: var(--shadow-xs);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        .guide-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+            border-color: rgba(109, 94, 252, 0.24);
+        }
+
+        .guide-num {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 14px;
+            font-size: 1.14rem;
+            font-weight: 900;
+            color: #ffffff;
+            background: linear-gradient(135deg, #7a6dff 0%, #42a5ff 100%);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.18);
+        }
+
+        .guide-code {
+            flex: 1;
+            text-align: center;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #eef5ff 0%, #ecfffd 100%);
+            color: #2563eb;
+            font-family: "Courier New", monospace;
+            font-size: 1.34rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            max-width: 760px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .btn {
+            min-height: 56px;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.97rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            filter: saturate(1.04);
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.99);
+        }
+
+        .btn-primary {
+            color: #ffffff;
+            background: linear-gradient(135deg, #5f8fff 0%, #42a5ff 55%, #2b7fff 100%);
+        }
+
+        .btn-success {
+            color: #ffffff;
+            background: linear-gradient(135deg, #48dfba 0%, #27cda6 55%, #12b886 100%);
+        }
+
+        .btn-neutral {
+            color: var(--text-secondary);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+        }
+
+        #modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: rgba(17, 24, 39, 0.34);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .modal-card {
+            position: relative;
+            overflow: hidden;
+            width: min(92vw, 440px);
+            padding: 36px 28px 28px;
+            text-align: center;
+            border-radius: 32px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,255,0.98) 100%);
+            border: 1px solid rgba(255,255,255,0.96);
+            box-shadow: 0 28px 72px rgba(53, 68, 103, 0.26);
+        }
+
+        .modal-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at top center, rgba(109,94,252,0.10) 0%, rgba(109,94,252,0) 36%),
+                linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 26%);
+            pointer-events: none;
+        }
+
+        .modal-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .modal-title {
+            font-size: 1.22rem;
+            font-weight: 900;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            margin: 20px 0 28px;
+            font-size: clamp(3.4rem, 10vw, 4.8rem);
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -0.06em;
+            background: linear-gradient(135deg, #6d5efc 0%, #42a5ff 58%, #27cda6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-wrap: balance;
+        }
+
+        @media (max-width: 980px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 18px;
+            }
+
+            .card {
+                padding: 22px;
+                border-radius: 28px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+                max-width: none;
+            }
+
+            .btn {
+                min-height: 54px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 14px;
+            }
+
+            .app-shell {
+                gap: 18px;
+            }
+
+            .sub-description {
+                padding: 10px 14px;
+                font-size: 0.9rem;
+            }
+
+            .guide-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .guide-item {
+                padding: 14px;
+            }
+
+            .guide-code {
+                font-size: 1.22rem;
+            }
+
+            .signal-pills {
+                min-height: 62px;
+                padding: 14px 16px;
+                gap: 8px;
+            }
+
+            #statusHint {
+                width: 100%;
+                min-width: unset;
+            }
         }
     </style>
 </head>
-<body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
+<body>
 
-    <!-- Header Section -->
-    <div class="max-w-xl w-full text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-[#92400E] mb-6 flex items-center justify-center gap-3">
-            ✨ 빛으로 보내는 숫자 신호 ✨
-        </h1>
-        
-        <!-- Tabs -->
-        <div class="bg-white rounded-3xl p-2 shadow-md flex gap-2 border-2 border-yellow-200">
-            <button onclick="setStep(1)" id="tab-1" class="step-active flex-1 py-3 rounded-2xl font-black text-xl transition-all">1단계</button>
-            <button onclick="setStep(2)" id="tab-2" class="flex-1 py-3 rounded-2xl font-black text-xl text-gray-400 hover:bg-yellow-50 transition-all">2단계</button>
-            <button onclick="setStep(3)" id="tab-3" class="flex-1 py-3 rounded-2xl font-black text-xl text-gray-400 hover:bg-yellow-50 transition-all">3단계</button>
+<div class="app-shell">
+    <header>
+        <div class="header-content">
+            <h1>빛으로 숫자 신호 보내기</h1>
+            <div class="sub-description">
+                <span class="sub-pill">🔘 짧게는 점</span>
+                <span class="sub-pill">➖ 길게는 선</span>
+            </div>
         </div>
-        <p id="step-description" class="mt-4 text-xl font-bold text-yellow-700">
-            ✨ 모스 부호로 숫자 표현 연습을 해보자!
-        </p>
-    </div>
+    </header>
 
-    <!-- Main Container -->
-    <div class="max-w-xl w-full bg-white rounded-[40px] shadow-2xl overflow-hidden border-[6px] border-yellow-300">
-        
-        <!-- Screen Area -->
-        <div class="bg-slate-900 p-8 flex flex-col items-center justify-center relative min-h-[320px]">
-            <div class="absolute top-6 right-6 bg-yellow-400 px-4 py-2 rounded-full font-bold text-xl flex items-center gap-2">
-                <i class="fas fa-trophy text-yellow-800"></i>
-                <span id="score-display">0점</span>
-            </div>
+    <div class="main-grid">
+        <div class="card">
+            <div class="interaction-zone">
+                <span class="label-badge">💡 전구를 눌러 신호 보내기</span>
+                <span class="control-hint">(SPACE 키, 전구 누르기)</span>
 
-            <!-- Light Bulb -->
-            <div id="bulb-container" class="transition-all duration-200">
-                <i id="main-bulb" class="fas fa-lightbulb text-[120px] text-slate-700"></i>
-            </div>
+                <div class="bulb-container" id="inputArea">
+                    <div class="glow-ring"></div>
+                    <svg class="bulb-svg" viewBox="0 0 24 24">
+                        <path d="M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z" />
+                    </svg>
+                </div>
 
-            <!-- Signal Visualizer -->
-            <div id="signal-dots" class="mt-8 flex gap-3 min-h-[48px] items-center">
-                <!-- Dots/Dashes will be injected here -->
+                <div class="status-container" style="display:flex; flex-direction:column; align-items:center; gap:16px; width:100%;">
+                    <label class="signal-toggle-label">
+                        <input type="checkbox" id="showSignalToggle" checked>
+                        <span>신호 실시간 표시</span>
+                    </label>
+
+                    <div class="signal-pills" id="signalTrack">
+                        <div class="sig-dot"></div>
+                        <div class="sig-dot"></div>
+                        <div class="sig-dot"></div>
+                        <div class="sig-dot"></div>
+                        <div class="sig-dot"></div>
+                    </div>
+
+                    <div id="statusHint">신호를 입력하세요</div>
+                </div>
             </div>
-            
-            <div id="text-input-display" class="mt-4 text-white font-mono tracking-[0.4em] text-3xl font-bold">...</div>
         </div>
 
-        <!-- Interaction Area -->
-        <div class="p-8">
-            <!-- Feedback Bubble -->
-            <div id="feedback-bubble" class="mb-8 p-5 rounded-[2rem] flex items-center gap-4 border-4 bg-blue-50 border-blue-300 text-blue-800 transition-all">
-                <div class="bg-white p-2 rounded-full shadow-sm">
-                    <i id="feedback-icon" class="fas fa-comment-dots text-3xl"></i>
-                </div>
-                <p id="feedback-text" class="text-2xl font-black leading-tight">안녕! 빛 신호를 배워볼까? 🌟</p>
+        <div class="card guide-panel">
+            <div class="guide-header">
+                <span class="guide-header-icon">🔢</span>
+                <span>모스 숫자표</span>
             </div>
-
-            <!-- Contextual Content -->
-            <div id="content-area" class="mb-8">
-                <!-- Step specific UI will go here -->
-            </div>
-
-            <!-- Morse Buttons -->
-            <div class="space-y-8">
-                <div class="flex items-center justify-center gap-10">
-                    <div class="text-center">
-                        <button onclick="handleMorseInput('.')" class="btn-push w-28 h-28 rounded-full bg-yellow-400 border-[6px] border-yellow-600 flex items-center justify-center">
-                            <div class="w-8 h-8 rounded-full bg-yellow-900"></div>
-                        </button>
-                        <span class="text-xl mt-4 block font-black text-yellow-800">점 (짧게)</span>
-                    </div>
-                    <div class="text-center">
-                        <button onclick="handleMorseInput('-')" class="btn-push w-28 h-28 rounded-full bg-orange-400 border-[6px] border-orange-600 flex items-center justify-center">
-                            <div class="w-16 h-6 rounded-full bg-orange-950"></div>
-                        </button>
-                        <span class="text-xl mt-4 block font-black text-orange-800">선 (길게)</span>
-                    </div>
-                </div>
-
-                <!-- Footer Buttons -->
-                <div id="action-buttons" class="flex gap-4">
-                    <!-- Dynamic buttons -->
-                </div>
+            <div class="guide-grid">
+                <div class="guide-item"><span class="guide-num">1</span><span class="guide-code">·----</span></div>
+                <div class="guide-item"><span class="guide-num">6</span><span class="guide-code">-····</span></div>
+                <div class="guide-item"><span class="guide-num">2</span><span class="guide-code">··---</span></div>
+                <div class="guide-item"><span class="guide-num">7</span><span class="guide-code">--···</span></div>
+                <div class="guide-item"><span class="guide-num">3</span><span class="guide-code">···--</span></div>
+                <div class="guide-item"><span class="guide-num">8</span><span class="guide-code">---··</span></div>
+                <div class="guide-item"><span class="guide-num">4</span><span class="guide-code">····-</span></div>
+                <div class="guide-item"><span class="guide-num">9</span><span class="guide-code">----·</span></div>
+                <div class="guide-item"><span class="guide-num">5</span><span class="guide-code">·····</span></div>
+                <div class="guide-item"><span class="guide-num">0</span><span class="guide-code">-----</span></div>
             </div>
         </div>
     </div>
 
-    <!-- Reference Table -->
-    <div class="mt-10 max-w-xl w-full bg-white p-6 rounded-[2rem] shadow-lg border-2 border-yellow-100">
-        <h3 class="text-2xl font-black text-yellow-800 flex items-center gap-2 mb-4">
-            <i class="fas fa-table"></i> 숫자 모스 부호표
-        </h3>
-        <div id="reference-grid" class="grid grid-cols-2 gap-x-8 gap-y-2 font-mono">
-            <!-- Table content injected by JS -->
-        </div>
+    <div class="button-group">
+        <button class="btn btn-primary" id="sendBtn">
+            <span>💾</span> 숫자 저장
+        </button>
+        <button class="btn btn-success" id="checkBtn">
+            <span>🔍</span> 숫자 확인
+        </button>
+        <button class="btn btn-neutral" id="resetBtn">
+            지우기
+        </button>
     </div>
+</div>
 
-    <div class="mt-10 text-center text-gray-400">
-        <p class="text-lg font-bold italic">💡 빛 신호의 길이를 잘 조절하는 것이 중요해!</p>
-        <div class="text-5xl mt-2 animate-bounce-slow">🐹 🎒 🔭</div>
+<div id="modal">
+    <div class="modal-card">
+        <h2 class="modal-title">해석된 결과입니다</h2>
+        <div class="result-text" id="modalResult">?</div>
+        <button class="btn btn-success" style="width: 100%" onclick="closeModal()">다시 하기</button>
     </div>
+</div>
 
-    <script>
-        const MORSE_NUMS = {
-            '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
-            '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----'
-        };
-        const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_NUMS).map(([k, v]) => [v, k]));
+<script>
+    const inputArea = document.getElementById('inputArea');
+    const signalTrack = document.getElementById('signalTrack');
+    const showSignalToggle = document.getElementById('showSignalToggle');
+    const sendBtn = document.getElementById('sendBtn');
+    const checkBtn = document.getElementById('checkBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const statusHint = document.getElementById('statusHint');
+    const modal = document.getElementById('modal');
+    const modalResult = document.getElementById('modalResult');
 
-        let currentStep = 1;
-        let score = 0;
-        let targetNum = '1';
-        let currentInput = "";
-        let isPlaying = false;
+    let isPressing = false;
+    let pressStartTime = 0;
+    let currentSequence = [];
+    let savedNumbers = [];
 
-        // Initialize
-        window.onload = () => {
-            renderReferenceTable();
-            setStep(1);
-        };
+    const morseMap = {
+        ".----": "1", "..---": "2", "...--": "3", "....-": "4", ".....": "5",
+        "-....": "6", "--...": "7", "---..": "8", "----.": "9", "-----": "0"
+    };
 
-        function renderReferenceTable() {
-            const grid = document.getElementById('reference-grid');
-            grid.innerHTML = Object.entries(MORSE_NUMS).map(([num, code]) => `
-                <div class="flex justify-between items-center border-b border-yellow-50 py-2">
-                    <span class="text-2xl font-black text-yellow-600">${num}</span>
-                    <span class="text-2xl tracking-[0.2em] font-bold text-gray-400">${code}</span>
-                </div>
-            `).join('');
+    showSignalToggle.addEventListener('change', (e) => {
+        if (e.target.checked) signalTrack.classList.remove('hidden');
+        else signalTrack.classList.add('hidden');
+    });
+
+    function setStatus(text) {
+        statusHint.innerText = text;
+    }
+
+    function startSignal(e) {
+        if (e && e.cancelable) e.preventDefault();
+        if (isPressing || currentSequence.length >= 5) return;
+        isPressing = true;
+        pressStartTime = Date.now();
+        inputArea.classList.add('active');
+        setStatus("송신 중...");
+    }
+
+    function endSignal(e) {
+        if (e && e.cancelable) e.preventDefault();
+        if (!isPressing) return;
+
+        const duration = Date.now() - pressStartTime;
+        isPressing = false;
+        inputArea.classList.remove('active');
+
+        const symbol = (duration < 250) ? "." : "-";
+        currentSequence.push(symbol);
+        updateUI();
+
+        setStatus(currentSequence.length === 5 ? "입력 완료! [저장]을 누르세요" : "다음 신호를 입력하세요");
+    }
+
+    function cancelSignalState() {
+        if (!isPressing) return;
+        isPressing = false;
+        inputArea.classList.remove('active');
+        setStatus(currentSequence.length === 0 ? "전구를 눌러 시작하세요" : "다음 신호 대기 중");
+    }
+
+    function updateUI() {
+        const dots = signalTrack.querySelectorAll('.sig-dot');
+        dots.forEach((dot, idx) => {
+            dot.className = 'sig-dot';
+            if (currentSequence[idx] === '.') dot.classList.add('on-dot');
+            if (currentSequence[idx] === '-') dot.classList.add('on-dash');
+        });
+    }
+
+    function sendCurrentDigit() {
+        if (currentSequence.length < 5) {
+            setStatus(currentSequence.length === 0 ? "먼저 신호를 입력해 주세요" : "5개를 모두 채워야 합니다");
+            return;
         }
 
-        function setStep(step) {
-            currentStep = step;
-            score = 0;
-            updateScore();
-            
-            // Update Tab UI
-            [1, 2, 3].forEach(s => {
-                const btn = document.getElementById(`tab-${s}`);
-                if (s === step) {
-                    btn.classList.add('step-active');
-                    btn.classList.remove('text-gray-400', 'hover:bg-yellow-50');
-                } else {
-                    btn.classList.remove('step-active');
-                    btn.classList.add('text-gray-400', 'hover:bg-yellow-50');
-                }
-            });
+        const code = currentSequence.join('');
+        const identifiedDigit = morseMap[code] || "?";
+        savedNumbers.push(identifiedDigit);
+        currentSequence = [];
+        updateUI();
 
-            // Update Descriptions
-            const descriptions = {
-                1: "✨ 모스 부호로 숫자 표현 연습을 해보자!",
-                2: "🔍 컴퓨터가 보내는 빛 신호를 맞혀보자!",
-                3: "🤖 컴퓨터에게 빛 신호를 보내보자!"
-            };
-            document.getElementById('step-description').innerText = descriptions[step];
+        setStatus(identifiedDigit === "?" ? "알 수 없는 신호입니다" : "저장 성공! 다음 숫자를 입력하세요");
+    }
 
-            generateNewProblem();
+    function showFinalResult() {
+        if (savedNumbers.length === 0 && currentSequence.length === 0) {
+            setStatus("전송할 데이터가 없습니다");
+            return;
         }
 
-        function generateNewProblem() {
-            const nums = Object.keys(MORSE_NUMS);
-            targetNum = nums[Math.floor(Math.random() * nums.length)];
-            currentInput = "";
-            updateDisplay();
-            renderContentArea();
-            renderActionButtons();
-
-            if (currentStep === 1) {
-                showFeedback(`숫자 '${targetNum}'을(를) 만들어보자! 🎈`, 'neutral');
-            } else if (currentStep === 2) {
-                showFeedback("준비됐니? '문제 보기'를 눌러봐! 👇", 'neutral');
-            } else {
-                showFeedback("보내고 싶은 숫자의 신호를 입력해줘! 🤖", 'neutral');
-            }
+        if (currentSequence.length > 0 && currentSequence.length < 5) {
+            setStatus("작성 중인 신호가 남았습니다");
+            return;
         }
 
-        function updateScore() {
-            document.getElementById('score-display').innerText = `${score}점`;
+        let displayMessage = [...savedNumbers];
+        if (currentSequence.length === 5) {
+            const lastCode = currentSequence.join('');
+            displayMessage.push(morseMap[lastCode] || "?");
         }
 
-        function showFeedback(msg, type) {
-            const bubble = document.getElementById('feedback-bubble');
-            const text = document.getElementById('feedback-text');
-            const icon = document.getElementById('feedback-icon');
+        modalResult.innerText = displayMessage.join('');
+        modal.style.display = "flex";
+    }
 
-            text.innerText = msg;
-            bubble.className = "mb-8 p-5 rounded-[2rem] flex items-center gap-4 border-4 transition-all ";
-            
-            if (type === 'success') {
-                bubble.classList.add('bg-green-50', 'border-green-300', 'text-green-800');
-                icon.className = "fas fa-check-circle text-3xl";
-            } else if (type === 'error') {
-                bubble.classList.add('bg-red-50', 'border-red-300', 'text-red-800');
-                icon.className = "fas fa-exclamation-circle text-3xl";
-            } else {
-                bubble.classList.add('bg-blue-50', 'border-blue-300', 'text-blue-800');
-                icon.className = "fas fa-lightbulb text-3xl";
-            }
+    function resetAll() {
+        isPressing = false;
+        currentSequence = [];
+        savedNumbers = [];
+        inputArea.classList.remove('active');
+        updateUI();
+        setStatus("초기화되었습니다");
+    }
+
+    function closeModal() {
+        modal.style.display = "none";
+        resetAll();
+    }
+
+    inputArea.addEventListener('mousedown', startSignal);
+    window.addEventListener('mouseup', endSignal);
+    inputArea.addEventListener('mouseleave', cancelSignalState);
+
+    inputArea.addEventListener('touchstart', startSignal, { passive: false });
+    inputArea.addEventListener('touchend', endSignal, { passive: false });
+    inputArea.addEventListener('touchcancel', cancelSignalState, { passive: false });
+
+    window.addEventListener('blur', cancelSignalState);
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !isPressing) {
+            e.preventDefault();
+            startSignal();
         }
+    });
 
-        function renderContentArea() {
-            const area = document.getElementById('content-area');
-            if (currentStep === 1) {
-                area.innerHTML = `
-                    <div class="text-center p-6 bg-yellow-50 rounded-3xl border-2 border-dashed border-yellow-300">
-                        <span class="text-gray-500 text-lg font-bold block mb-2">이번에 만들 숫자는?</span>
-                        <div class="text-7xl font-black text-yellow-600 mb-2">${targetNum}</div>
-                        <div class="text-3xl font-mono tracking-widest text-gray-400 bg-white inline-block px-6 py-2 rounded-2xl shadow-sm border border-yellow-100">
-                            ${MORSE_NUMS[targetNum]}
-                        </div>
-                    </div>
-                `;
-            } else if (currentStep === 2) {
-                area.innerHTML = `
-                    <div class="grid grid-cols-5 gap-3">
-                        ${[1,2,3,4,5,6,7,8,9,0].map(n => `
-                            <button onclick="checkStep2Answer('${n}')" class="aspect-square bg-yellow-100 hover:bg-yellow-400 hover:text-white text-yellow-900 font-black rounded-[1.5rem] text-3xl flex items-center justify-center transition-all shadow-md active:translate-y-1">
-                                ${n}
-                            </button>
-                        `).join('')}
-                    </div>
-                `;
-            } else {
-                area.innerHTML = `
-                    <div class="text-center py-4">
-                        <p class="text-xl font-bold text-gray-600 bg-gray-100 py-4 rounded-2xl px-4 italic">
-                            "원하는 숫자의 신호를 전구 버튼으로 <br/>입력한 뒤 '해독하기'를 눌러봐!"
-                        </p>
-                    </div>
-                `;
-            }
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            endSignal();
         }
+    });
 
-        function renderActionButtons() {
-            const container = document.getElementById('action-buttons');
-            let buttonsHtml = `
-                <button onclick="resetInput()" class="flex-1 py-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-3xl text-xl font-black flex items-center justify-center gap-2 transition-all shadow-md">
-                    <i class="fas fa-undo"></i> 지우기
-                </button>
-            `;
-
-            if (currentStep === 2) {
-                buttonsHtml += `
-                    <button id="play-btn" onclick="playSystemSignal()" class="flex-[2] py-5 bg-orange-500 hover:bg-orange-600 text-white rounded-3xl text-2xl font-black flex items-center justify-center gap-3 shadow-xl transition-all">
-                        <i class="fas fa-play"></i> 문제 보기
-                    </button>
-                `;
-            } else if (currentStep === 3) {
-                buttonsHtml += `
-                    <button onclick="checkMySignal()" class="flex-[2] py-5 bg-green-500 hover:bg-green-600 text-white rounded-3xl text-2xl font-black flex items-center justify-center gap-3 shadow-xl transition-all">
-                        해독하기 🤖
-                    </button>
-                `;
-            }
-
-            container.innerHTML = buttonsHtml;
-        }
-
-        function handleMorseInput(symbol) {
-            if (isPlaying) return;
-            if (currentInput.length >= 5) return;
-
-            currentInput += symbol;
-            flashLight(symbol === '.' ? 200 : 600);
-            updateDisplay();
-
-            if (currentStep === 1 && currentInput.length === 5) {
-                if (currentInput === MORSE_NUMS[targetNum]) {
-                    showFeedback("우와! 정확하게 입력했어! 🎉", "success");
-                    score++;
-                    updateScore();
-                    setTimeout(generateNewProblem, 1500);
-                } else {
-                    showFeedback("패턴이 조금 달라. 다시 해볼까? 💡", "error");
-                    setTimeout(resetInput, 1000);
-                }
-            }
-        }
-
-        function resetInput() {
-            currentInput = "";
-            updateDisplay();
-        }
-
-        function updateDisplay() {
-            const display = document.getElementById('text-input-display');
-            display.innerText = currentInput || "...";
-
-            const dotContainer = document.getElementById('signal-dots');
-            let dotsHtml = "";
-            for (let i = 0; i < 5; i++) {
-                if (i < currentInput.length) {
-                    const char = currentInput[i];
-                    dotsHtml += `<div class="${char === '.' ? 'signal-dot' : 'signal-dash animate-pulse'}"></div>`;
-                } else {
-                    dotsHtml += `<div class="signal-empty"></div>`;
-                }
-            }
-            dotContainer.innerHTML = dotsHtml;
-        }
-
-        function flashLight(duration) {
-            const bulb = document.getElementById('main-bulb');
-            const container = document.getElementById('bulb-container');
-            
-            bulb.classList.add('bulb-glow');
-            container.style.transform = 'scale(1.2)';
-            
-            setTimeout(() => {
-                bulb.classList.remove('bulb-glow');
-                container.style.transform = 'scale(1)';
-            }, duration);
-        }
-
-        async function playSystemSignal() {
-            if (isPlaying) return;
-            isPlaying = true;
-            resetInput();
-            showFeedback("전구의 빛을 잘 관찰해봐! 집중! 👀", "neutral");
-            
-            const btn = document.getElementById('play-btn');
-            if(btn) btn.disabled = true;
-
-            const code = MORSE_NUMS[targetNum];
-            for (const char of code) {
-                flashLight(char === '.' ? 300 : 800);
-                await new Promise(r => setTimeout(r, (char === '.' ? 300 : 800) + 400));
-            }
-
-            isPlaying = false;
-            if(btn) btn.disabled = false;
-            showFeedback("방금 본 신호는 어떤 숫자였을까?", "neutral");
-        }
-
-        function checkStep2Answer(num) {
-            if (isPlaying) return;
-            if (num === targetNum) {
-                showFeedback("딩동댕! 정답이야! 대단한걸? 🌈", "success");
-                score++;
-                updateScore();
-                setTimeout(generateNewProblem, 1500);
-            } else {
-                showFeedback("아니에요. 다시 한 번 잘 볼래?", "error");
-            }
-        }
-
-        function checkMySignal() {
-            const decoded = REVERSE_MORSE[currentInput];
-            if (decoded) {
-                showFeedback(`알겠다! 네가 보낸 신호는 숫자 '${decoded}'이지? 😎`, "success");
-                score++;
-                updateScore();
-                setTimeout(generateNewProblem, 2000);
-            } else {
-                showFeedback("음... 그런 신호는 없어. 다시 천천히 보내줘! 🤖", "error");
-                resetInput();
-            }
-        }
-    </script>
+    sendBtn.addEventListener('click', sendCurrentDigit);
+    checkBtn.addEventListener('click', showFinalResult);
+    resetBtn.addEventListener('click', resetAll);
+</script>
 </body>
 </html>
