@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>빛으로 숫자 신호 보내기 (V1.09)</title>
+    <title>빛으로 숫자 신호 보내기 (V1.13)</title>
     <!--
         빛으로 숫자 신호 보내기
 
@@ -23,40 +23,61 @@
         - 상단 버전 칩 문구가 화면에 출력되지 않도록 변경
         - 숫자 저장 / 숫자 확인 / 지우기 버튼 크기를 더 적절한 크기로 조정
         - 기능/설정/JS 로직은 그대로 유지
+
+        V1.10
+        - 기능/설정/JS 로직은 그대로 유지한 채 초등학생 취향의 귀여운 디자인으로 리뉴얼
+        - 귀여운 아이콘, 알록달록한 색감, 둥근 카드형 UI 강화
+        - 버튼/상태/숫자표를 더 발랄하고 친근한 키즈 에듀테크 스타일로 조정
+
+        V1.11
+        - 이전 수정본은 모두 무시하고, 사용자가 제공한 V1.10 코드를 기준 최신 버전으로 재지정
+        - 기능/설정/UI/JS 로직 변경 없이 버전 표기 및 버전 히스토리만 최신화
+
+        V1.12
+        - 기존 기능/설정/JS 로직은 유지
+        - 전구 영역의 별 아이콘 제거
+        - 신호 실시간 표시 옆 무지개 아이콘 제거
+        - 모스 숫자표 숫자 둥근 사각형 색상을 보라-파랑 계열로 통일
+
+        V1.13
+        - 기존 기능/설정/JS 로직은 유지
+        - 모스 숫자표의 점과 선 모스부호를 더 굵고 크게 조정하여 가독성 향상
+
+        ※ V1.13을 최신 버전으로 유지
     -->
     <style>
         :root {
-            --bg-1: #f7f9ff;
-            --bg-2: #eef8ff;
-            --bg-3: #fff7ef;
-            --bg-4: #f5efff;
+            --bg-1: #fff8fb;
+            --bg-2: #f2fbff;
+            --bg-3: #fffdea;
+            --bg-4: #f5f0ff;
 
-            --card-bg: rgba(255, 255, 255, 0.82);
-            --card-border: rgba(255, 255, 255, 0.92);
-            --card-solid: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.88);
+            --card-border: rgba(255, 255, 255, 0.95);
 
-            --primary: #6d5efc;
-            --primary-2: #8b7bff;
-            --blue: #42a5ff;
-            --mint: #35d6b5;
+            --purple: #8b5cf6;
+            --sky: #4dabff;
+            --mint: #34d399;
             --yellow: #ffd84d;
-            --pink: #ff77b7;
-            --orange: #ffab5b;
+            --orange: #ff9f5a;
+            --pink: #ff7eb6;
+            --rose: #ff5fa2;
 
-            --text-primary: #1f2a44;
+            --guide-num-grad: linear-gradient(135deg, #7b7cf8 0%, #4f8dff 100%);
+
+            --text-primary: #27324a;
             --text-secondary: #5f6b85;
             --text-muted: #8d96ab;
-            --text-soft: #6f7b91;
 
-            --shadow-xs: 0 6px 18px rgba(79, 104, 155, 0.08);
-            --shadow-sm: 0 12px 28px rgba(84, 104, 145, 0.12);
-            --shadow-md: 0 18px 42px rgba(79, 96, 136, 0.16);
-            --shadow-lg: 0 28px 60px rgba(73, 86, 118, 0.18);
+            --shadow-xs: 0 6px 18px rgba(109, 121, 162, 0.10);
+            --shadow-sm: 0 12px 26px rgba(100, 111, 153, 0.14);
+            --shadow-md: 0 18px 40px rgba(92, 101, 138, 0.16);
+            --shadow-lg: 0 28px 60px rgba(88, 95, 129, 0.18);
 
             --radius-sm: 16px;
             --radius-md: 22px;
             --radius-lg: 28px;
-            --radius-xl: 34px;
+            --radius-xl: 36px;
             --radius-pill: 999px;
         }
 
@@ -82,10 +103,10 @@
             color: var(--text-primary);
             overflow-x: hidden;
             background:
-                radial-gradient(circle at 10% 12%, rgba(66, 165, 255, 0.18) 0%, rgba(66, 165, 255, 0) 22%),
-                radial-gradient(circle at 88% 14%, rgba(255, 119, 183, 0.16) 0%, rgba(255, 119, 183, 0) 24%),
-                radial-gradient(circle at 84% 84%, rgba(53, 214, 181, 0.15) 0%, rgba(53, 214, 181, 0) 22%),
-                radial-gradient(circle at 16% 86%, rgba(255, 216, 77, 0.18) 0%, rgba(255, 216, 77, 0) 22%),
+                radial-gradient(circle at 12% 14%, rgba(255, 126, 182, 0.20) 0%, rgba(255, 126, 182, 0) 22%),
+                radial-gradient(circle at 88% 16%, rgba(77, 171, 255, 0.18) 0%, rgba(77, 171, 255, 0) 24%),
+                radial-gradient(circle at 84% 84%, rgba(52, 211, 153, 0.18) 0%, rgba(52, 211, 153, 0) 22%),
+                radial-gradient(circle at 18% 86%, rgba(255, 216, 77, 0.22) 0%, rgba(255, 216, 77, 0) 22%),
                 linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 35%, var(--bg-3) 68%, var(--bg-4) 100%);
         }
 
@@ -94,7 +115,7 @@
             content: "";
             position: fixed;
             border-radius: 50%;
-            filter: blur(28px);
+            filter: blur(32px);
             pointer-events: none;
             z-index: 0;
             opacity: 0.55;
@@ -104,16 +125,16 @@
             width: 220px;
             height: 220px;
             left: -50px;
-            top: 54px;
-            background: rgba(109, 94, 252, 0.13);
+            top: 52px;
+            background: rgba(139, 92, 246, 0.14);
         }
 
         body::after {
-            width: 240px;
-            height: 240px;
-            right: -56px;
-            bottom: 38px;
-            background: rgba(66, 165, 255, 0.14);
+            width: 250px;
+            height: 250px;
+            right: -60px;
+            bottom: 30px;
+            background: rgba(255, 159, 90, 0.14);
         }
 
         .app-shell {
@@ -155,7 +176,7 @@
             font-weight: 900;
             line-height: 1.08;
             letter-spacing: -0.05em;
-            background: linear-gradient(135deg, #6554ff 0%, #7b6eff 34%, #2f8fff 68%, #21c7d9 100%);
+            background: linear-gradient(135deg, #ff69ad 0%, #8b5cf6 34%, #3b82f6 68%, #10b981 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-wrap: balance;
@@ -168,8 +189,8 @@
             align-items: center;
             gap: 10px;
             padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.76);
-            border: 1px solid rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.95);
             border-radius: var(--radius-pill);
             box-shadow: var(--shadow-xs);
             color: var(--text-secondary);
@@ -210,8 +231,8 @@
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0) 28%),
-                radial-gradient(circle at top right, rgba(109,94,252,0.09) 0%, rgba(109,94,252,0) 30%);
+                linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 28%),
+                radial-gradient(circle at top right, rgba(255,126,182,0.10) 0%, rgba(255,126,182,0) 30%);
             pointer-events: none;
         }
 
@@ -233,13 +254,13 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.92rem;
+            font-size: 0.95rem;
             font-weight: 900;
             color: #0f766e;
             background: linear-gradient(135deg, #ecfeff 0%, #dcfce7 100%);
-            padding: 10px 18px;
+            padding: 11px 18px;
             border-radius: var(--radius-pill);
-            border: 1px solid rgba(255,255,255,0.92);
+            border: 1px solid rgba(255,255,255,0.95);
             box-shadow: var(--shadow-xs);
         }
 
@@ -263,13 +284,13 @@
             user-select: none;
             touch-action: none;
             background:
-                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.92) 28%, rgba(239,245,255,0.98) 100%);
-            border: 10px solid rgba(255, 255, 255, 0.9);
+                radial-gradient(circle at 32% 25%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.94) 28%, rgba(245,248,255,0.98) 100%);
+            border: 10px solid rgba(255, 255, 255, 0.95);
             box-shadow:
-                inset 0 3px 10px rgba(255,255,255,0.9),
-                inset 0 -12px 22px rgba(173, 214, 255, 0.26),
-                0 20px 42px rgba(94, 121, 180, 0.16),
-                0 8px 18px rgba(109, 94, 252, 0.08);
+                inset 0 3px 10px rgba(255,255,255,0.95),
+                inset 0 -12px 22px rgba(255, 192, 225, 0.18),
+                0 20px 42px rgba(113, 124, 170, 0.16),
+                0 8px 18px rgba(139, 92, 246, 0.08);
             transition: transform 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
         }
 
@@ -278,34 +299,34 @@
             position: absolute;
             inset: 18px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0) 70%);
+            background: radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0) 70%);
             pointer-events: none;
         }
 
         .bulb-container:hover {
             transform: translateY(-3px) scale(1.015);
             box-shadow:
-                inset 0 3px 10px rgba(255,255,255,0.95),
-                inset 0 -12px 22px rgba(173, 214, 255, 0.28),
-                0 26px 52px rgba(94, 121, 180, 0.18),
-                0 12px 22px rgba(109, 94, 252, 0.10);
+                inset 0 3px 10px rgba(255,255,255,0.98),
+                inset 0 -12px 22px rgba(255, 192, 225, 0.22),
+                0 26px 52px rgba(113, 124, 170, 0.18),
+                0 12px 22px rgba(139, 92, 246, 0.10);
         }
 
         .bulb-container.active {
             transform: scale(0.96);
             background:
-                radial-gradient(circle at 50% 45%, #fffef4 0%, #fff6bc 42%, #ffe27b 100%);
+                radial-gradient(circle at 50% 45%, #fffef7 0%, #fff4b8 42%, #ffd86d 100%);
             box-shadow:
-                inset 0 4px 16px rgba(255,255,255,0.96),
+                inset 0 4px 16px rgba(255,255,255,0.98),
                 inset 0 -10px 18px rgba(255, 204, 64, 0.24),
-                0 0 0 10px rgba(255, 226, 123, 0.32),
+                0 0 0 10px rgba(255, 226, 123, 0.34),
                 0 24px 54px rgba(255, 199, 65, 0.28);
         }
 
         .bulb-svg {
             width: clamp(88px, 10vw, 112px);
             height: clamp(88px, 10vw, 112px);
-            fill: #cfdae8;
+            fill: #d7dff0;
             position: relative;
             z-index: 2;
             transition: all 0.2s ease;
@@ -320,7 +341,7 @@
             position: absolute;
             inset: -8px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 216, 77, 0.28) 0%, rgba(255, 216, 77, 0.10) 40%, rgba(255, 216, 77, 0) 72%);
+            background: radial-gradient(circle, rgba(255, 216, 77, 0.30) 0%, rgba(255, 216, 77, 0.10) 40%, rgba(255, 216, 77, 0) 72%);
             opacity: 0;
             transition: opacity 0.2s ease;
             z-index: 1;
@@ -358,21 +379,21 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 0.93rem;
+            font-size: 0.94rem;
             font-weight: 800;
             color: var(--text-secondary);
             cursor: pointer;
             padding: 12px 16px;
             border-radius: 18px;
-            background: rgba(255, 255, 255, 0.82);
-            border: 1px solid rgba(255,255,255,0.92);
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(255,255,255,0.95);
             box-shadow: var(--shadow-xs);
         }
 
         .signal-toggle-label input {
             width: 18px;
             height: 18px;
-            accent-color: var(--blue);
+            accent-color: var(--sky);
             flex-shrink: 0;
         }
 
@@ -382,10 +403,10 @@
             align-items: center;
             gap: 10px;
             width: 100%;
-            min-height: 68px;
+            min-height: 72px;
             padding: 16px 20px;
-            border-radius: 22px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(244,248,255,0.96) 100%);
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(247,251,255,0.98) 100%);
             border: 1px solid rgba(255,255,255,0.95);
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.92), var(--shadow-sm);
         }
@@ -398,38 +419,38 @@
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #dbe4f1 0%, #cbd5e1 100%);
+            background: linear-gradient(135deg, #e4e9f5 0%, #ced7e6 100%);
             box-shadow: inset 0 1px 1px rgba(255,255,255,0.8);
             transition: all 0.26s ease;
         }
 
         .sig-dot.on-dot {
-            background: linear-gradient(135deg, #ff96c8 0%, #ff5fa7 100%);
+            background: linear-gradient(135deg, #ff9acc 0%, #ff5fa2 100%);
             box-shadow:
-                0 0 0 4px rgba(255, 119, 183, 0.12),
-                0 0 16px rgba(255, 119, 183, 0.28);
+                0 0 0 4px rgba(255, 95, 162, 0.12),
+                0 0 16px rgba(255, 95, 162, 0.28);
             transform: scale(1.08);
         }
 
         .sig-dot.on-dash {
             width: 30px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #7bc8ff 0%, #42a5ff 100%);
+            background: linear-gradient(135deg, #7fd6ff 0%, #4dabff 100%);
             box-shadow:
-                0 0 0 4px rgba(66, 165, 255, 0.10),
-                0 0 16px rgba(66, 165, 255, 0.24);
+                0 0 0 4px rgba(77, 171, 255, 0.10),
+                0 0 16px rgba(77, 171, 255, 0.24);
         }
 
         #statusHint {
             min-width: 220px;
             padding: 12px 18px;
             text-align: center;
-            font-size: 0.95rem;
+            font-size: 0.96rem;
             font-weight: 900;
             color: var(--text-secondary);
-            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.92);
+            background: linear-gradient(135deg, #ffffff 0%, #fff8fb 100%);
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.95);
             box-shadow: var(--shadow-xs);
         }
 
@@ -449,14 +470,14 @@
         }
 
         .guide-header-icon {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-size: 1.08rem;
             border-radius: 14px;
-            background: linear-gradient(135deg, #ede9ff 0%, #dff2ff 100%);
+            background: linear-gradient(135deg, #ffe7f2 0%, #e7f3ff 100%);
             box-shadow: var(--shadow-xs);
         }
 
@@ -471,8 +492,8 @@
             align-items: center;
             gap: 14px;
             padding: 16px;
-            border-radius: 22px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.97) 0%, rgba(247,250,255,0.97) 100%);
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(250,252,255,0.98) 100%);
             border: 1px solid rgba(255,255,255,0.95);
             box-shadow: var(--shadow-xs);
             transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
@@ -481,36 +502,38 @@
         .guide-item:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
-            border-color: rgba(109, 94, 252, 0.24);
+            border-color: rgba(139, 92, 246, 0.24);
         }
 
         .guide-num {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             flex-shrink: 0;
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            border-radius: 14px;
+            border-radius: 16px;
             font-size: 1.14rem;
             font-weight: 900;
             color: #ffffff;
-            background: linear-gradient(135deg, #7a6dff 0%, #42a5ff 100%);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.18);
+            background: var(--guide-num-grad);
+            box-shadow: 0 10px 20px rgba(79, 141, 255, 0.22);
         }
 
         .guide-code {
             flex: 1;
             text-align: center;
-            padding: 10px 14px;
+            padding: 11px 16px;
             border-radius: 14px;
-            background: linear-gradient(135deg, #eef5ff 0%, #ecfffd 100%);
+            background: linear-gradient(135deg, #fff4fb 0%, #eef8ff 100%);
             color: #2563eb;
             font-family: "Courier New", monospace;
-            font-size: 1.34rem;
+            font-size: 1.62rem;
             font-weight: 900;
-            letter-spacing: 2px;
+            line-height: 1;
+            letter-spacing: 3px;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+            -webkit-text-stroke: 0.25px rgba(37, 99, 235, 0.18);
         }
 
         .button-group {
@@ -523,15 +546,15 @@
         }
 
         .btn {
-            min-height: 56px;
+            min-height: 58px;
             padding: 14px 18px;
             border: none;
-            border-radius: 20px;
+            border-radius: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 0.97rem;
+            font-size: 0.98rem;
             font-weight: 900;
             letter-spacing: -0.02em;
             cursor: pointer;
@@ -551,18 +574,18 @@
 
         .btn-primary {
             color: #ffffff;
-            background: linear-gradient(135deg, #5f8fff 0%, #42a5ff 55%, #2b7fff 100%);
+            background: linear-gradient(135deg, #7aa8ff 0%, #4dabff 55%, #2f8fff 100%);
         }
 
         .btn-success {
             color: #ffffff;
-            background: linear-gradient(135deg, #48dfba 0%, #27cda6 55%, #12b886 100%);
+            background: linear-gradient(135deg, #4ee3bf 0%, #34d399 55%, #12b886 100%);
         }
 
         .btn-neutral {
             color: var(--text-secondary);
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #fff7fb 0%, #ffffff 100%);
+            border: 1px solid #e8eaf4;
         }
 
         #modal {
@@ -584,8 +607,8 @@
             width: min(92vw, 440px);
             padding: 36px 28px 28px;
             text-align: center;
-            border-radius: 32px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,255,0.98) 100%);
+            border-radius: 34px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(252,248,255,0.99) 100%);
             border: 1px solid rgba(255,255,255,0.96);
             box-shadow: 0 28px 72px rgba(53, 68, 103, 0.26);
         }
@@ -595,7 +618,7 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(circle at top center, rgba(109,94,252,0.10) 0%, rgba(109,94,252,0) 36%),
+                radial-gradient(circle at top center, rgba(255,126,182,0.12) 0%, rgba(255,126,182,0) 36%),
                 linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 26%);
             pointer-events: none;
         }
@@ -618,7 +641,7 @@
             line-height: 1;
             font-weight: 900;
             letter-spacing: -0.06em;
-            background: linear-gradient(135deg, #6d5efc 0%, #42a5ff 58%, #27cda6 100%);
+            background: linear-gradient(135deg, #ff69ad 0%, #8b5cf6 38%, #3b82f6 68%, #10b981 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-wrap: balance;
@@ -646,7 +669,7 @@
             }
 
             .btn {
-                min-height: 54px;
+                min-height: 56px;
             }
         }
 
@@ -673,7 +696,8 @@
             }
 
             .guide-code {
-                font-size: 1.22rem;
+                font-size: 1.46rem;
+                letter-spacing: 2px;
             }
 
             .signal-pills {
@@ -736,7 +760,7 @@
 
         <div class="card guide-panel">
             <div class="guide-header">
-                <span class="guide-header-icon">🔢</span>
+                <span class="guide-header-icon">🧮</span>
                 <span>모스 숫자표</span>
             </div>
             <div class="guide-grid">
@@ -762,14 +786,14 @@
             <span>🔍</span> 숫자 확인
         </button>
         <button class="btn btn-neutral" id="resetBtn">
-            지우기
+            <span>🧽</span> 지우기
         </button>
     </div>
 </div>
 
 <div id="modal">
     <div class="modal-card">
-        <h2 class="modal-title">해석된 결과입니다</h2>
+        <h2 class="modal-title">해석된 결과입니다 🎉</h2>
         <div class="result-text" id="modalResult">?</div>
         <button class="btn btn-success" style="width: 100%" onclick="closeModal()">다시 하기</button>
     </div>
